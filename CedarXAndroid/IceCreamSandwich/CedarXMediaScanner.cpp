@@ -57,7 +57,7 @@ static bool FileHasAcceptableExtension(const char *extension) {
 status_t CedarXMediaScanner::processFile(
         const char *path, const char *mimeType,
         MediaScannerClient &client) {
-    LOGV("processFile '%s'.", path);
+    ALOGV("processFile '%s'.", path);
 
     client.setLocale(locale());
     client.beginFile();
@@ -116,7 +116,7 @@ status_t CedarXMediaScanner::processFile(
 }
 
 char *CedarXMediaScanner::extractAlbumArt(int fd) {
-    LOGV("extractAlbumArt %d", fd);
+    ALOGV("extractAlbumArt %d", fd);
 
     off_t size = lseek(fd, 0, SEEK_END);
     if (size < 0) {

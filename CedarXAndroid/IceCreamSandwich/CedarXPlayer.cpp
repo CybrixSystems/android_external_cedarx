@@ -52,7 +52,7 @@
 
 namespace android {
 
-#define LOGH LOGV("H/%s line:%d\n",__FILE__,__LINE__)
+#define ALOGH ALOGV("H/%s line:%d\n",__FILE__,__LINE__)
 
 //static int64_t kLowWaterMarkUs = 2000000ll; // 2secs
 //static int64_t kHighWaterMarkUs = 10000000ll; // 10secs
@@ -118,7 +118,7 @@ CedarXPlayer::CedarXPlayer() :
 	mQueueStarted(false), mVideoRendererIsPreview(false),
 	mAudioPlayer(NULL), mFlags(0), mExtractorFlags(0), mCanSeek(0){
 
-	LOGV("Construction");
+	ALOGV("Construction");
 
 	mExtendMember = (CedarXPlayerExtendMember *)malloc(sizeof(CedarXPlayerExtendMember));
 
@@ -148,7 +148,7 @@ CedarXPlayer::~CedarXPlayer() {
 	}
 
 	if (mAudioPlayer) {
-		LOGV("delete mAudioPlayer");
+		ALOGV("delete mAudioPlayer");
 		delete mAudioPlayer;
 		mAudioPlayer = NULL;
 	}
@@ -157,11 +157,11 @@ CedarXPlayer::~CedarXPlayer() {
 		free(mExtendMember);
 		mExtendMember = NULL;
 	}
-	LOGV("Deconstruction %x",mFlags);
+	ALOGV("Deconstruction %x",mFlags);
 }
 
 void CedarXPlayer::setUID(uid_t uid) {
-    LOGV("CedarXPlayer running on behalf of uid %d", uid);
+    ALOGV("CedarXPlayer running on behalf of uid %d", uid);
 
     mUID = uid;
     mUIDValid = true;
@@ -175,7 +175,7 @@ void CedarXPlayer::setListener(const wp<MediaPlayerBase> &listener) {
 status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 		String8, String8> *headers) {
 	//Mutex::Autolock autoLock(mLock);
-	LOGV("CedarXPlayer::setDataSource (%s)", uri);
+	ALOGV("CedarXPlayer::setDataSource (%s)", uri);
 	mUri = uri;
 	mIsUri = true;
 	if (headers) {
@@ -193,7 +193,7 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 
 status_t CedarXPlayer::setDataSource(int fd, int64_t offset, int64_t length) {
 	//Mutex::Autolock autoLock(mLock);
-	LOGV("CedarXPlayer::setDataSource fd");
+	ALOGV("CedarXPlayer::setDataSource fd");
 	CedarXExternFdDesc ext_fd_desc;
 	ext_fd_desc.fd = fd;
 	ext_fd_desc.offset = offset;
@@ -218,7 +218,7 @@ status_t CedarXPlayer::getParameter(int key, Parcel *reply) {
 
 void CedarXPlayer::reset() {
 	//Mutex::Autolock autoLock(mLock);
-	LOGV("RESET????, context: %p",this);
+	ALOGV("RESET????, context: %p",this);
 
 	if(mPlayer != NULL){
 		mPlayer->control(mPlayer, CDX_CMD_RESET, 0, 0);
@@ -234,7 +234,7 @@ void CedarXPlayer::reset() {
 }
 
 void CedarXPlayer::reset_l() {
-	LOGV("reset_l");
+	ALOGV("reset_l");
 
 	mPlayerState = PLAYER_STATE_UNKOWN;
 	pause_l(true);
@@ -244,7 +244,7 @@ void CedarXPlayer::reset_l() {
 		delete mAudioPlayer;
 		mAudioPlayer = NULL;
 	}
-	LOGV("RESET End");
+	ALOGV("RESET End");
 
 	mDurationUs = 0;
 	mFlags = 0;
@@ -279,10 +279,10 @@ void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
 
 status_t CedarXPlayer::play() {
 	Mutex::Autolock autoLock(mLock);
-	LOGV("CedarXPlayer::play()");
+	ALOGV("CedarXPlayer::play()");
 
 	if(mFlags & NATIVE_SUSPENDING) {
-		LOGW("you has been suspend by other's");
+		ALOGW("you has been suspend by other's");
 		return UNKNOWN_ERROR;
 	}
 
@@ -290,12 +290,12 @@ status_t CedarXPlayer::play() {
 
 	status_t ret = play_l(CDX_CMD_START_ASYNC);
 
-	LOGV("CedarXPlayer::play() end");
+	ALOGV("CedarXPlayer::play() end");
 	return ret;
 }
 
 status_t CedarXPlayer::play_l(int command) {
-	LOGV("CedarXPlayer::play_l()");
+	ALOGV("CedarXPlayer::play_l()");
 
 	if (mFlags & PLAYING) {
 		return OK;
@@ -317,13 +317,13 @@ status_t CedarXPlayer::play_l(int command) {
 
 	if(mFlags & RESTORE_CONTROL_PARA){
 		if(mMediaInfo.mSubtitleStreamCount > 0) {
-			LOGV("Restore control parameter!");
+			ALOGV("Restore control parameter!");
 			if(mSubtitleParameter.mSubtitleDelay != 0){
 				setSubDelay(mSubtitleParameter.mSubtitleDelay);
 			}
 
 			if(mSubtitleParameter.mSubtitleColor != 0){
-				LOGV("-------mSubtitleParameter.mSubtitleColor: %x",mSubtitleParameter.mSubtitleColor);
+				ALOGV("-------mSubtitleParameter.mSubtitleColor: %x",mSubtitleParameter.mSubtitleColor);
 				setSubColor(mSubtitleParameter.mSubtitleColor);
 			}
 
@@ -342,11 +342,11 @@ status_t CedarXPlayer::play_l(int command) {
 
 	if(mSeeking && mTagPlay && mSeekTimeUs > 0){
 		mPlayer->control(mPlayer, CDX_CMD_TAG_START_ASYNC, (unsigned int)&mSeekTimeUs, 0);
-		LOGD("--tag play %lldus",mSeekTimeUs);
+		ALOGD("--tag play %lldus",mSeekTimeUs);
 	}
 	else if(mPlayerState == PLAYER_STATE_SUSPEND || mPlayerState == PLAYER_STATE_RESUME){
 		mPlayer->control(mPlayer, CDX_CMD_TAG_START_ASYNC, (unsigned int)&mSuspensionState.mPositionUs, 0);
-		LOGD("--tag play %lldus",mSuspensionState.mPositionUs);
+		ALOGD("--tag play %lldus",mSuspensionState.mPositionUs);
 	}
 	else {
 		mPlayer->control(mPlayer, command, (unsigned int)&mSuspensionState.mPositionUs, 0);
@@ -360,7 +360,7 @@ status_t CedarXPlayer::play_l(int command) {
 }
 
 status_t CedarXPlayer::stop() {
-	LOGV("CedarXPlayer::stop");
+	ALOGV("CedarXPlayer::stop");
 
 	if(mPlayer != NULL){
 		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
@@ -385,10 +385,10 @@ status_t CedarXPlayer::stop() {
 }
 
 status_t CedarXPlayer::stop_l() {
-	LOGV("stop() status:%x", mFlags & PLAYING);
+	ALOGV("stop() status:%x", mFlags & PLAYING);
 
 	notifyListener_l(MEDIA_INFO, MEDIA_INFO_BUFFERING_END);
-	LOGD("MEDIA_PLAYBACK_COMPLETE");
+	ALOGD("MEDIA_PLAYBACK_COMPLETE");
 	notifyListener_l(MEDIA_PLAYBACK_COMPLETE);
 
 	pause_l(true);
@@ -396,14 +396,14 @@ status_t CedarXPlayer::stop_l() {
 	mVideoRenderer.clear();
 	mVideoRenderer = NULL;
 	mFlags &= ~SUSPENDING;
-	LOGV("stop finish 1...");
+	ALOGV("stop finish 1...");
 
 	return OK;
 }
 
 status_t CedarXPlayer::pause() {
 	//Mutex::Autolock autoLock(mLock);
-	LOGV("pause cmd");
+	ALOGV("pause cmd");
 #if 0
 	mFlags &= ~CACHE_UNDERRUN;
 	mPlayer->control(mPlayer, CDX_CMD_PAUSE, 0, 0);
@@ -447,7 +447,7 @@ status_t CedarXPlayer::pause_l(bool at_eos) {
 }
 
 bool CedarXPlayer::isPlaying() const {
-	//LOGV("isPlaying cmd mFlags=0x%x",mFlags);
+	//ALOGV("isPlaying cmd mFlags=0x%x",mFlags);
 	return (mFlags & PLAYING) || (mFlags & CACHE_UNDERRUN);
 }
 
@@ -458,7 +458,7 @@ status_t CedarXPlayer::setNativeWindow_l(const sp<ANativeWindow> &native) {
 //        return OK;
 //    }
 //
-//    LOGV("attempting to reconfigure to use new surface");
+//    ALOGV("attempting to reconfigure to use new surface");
 //
 //    bool wasPlaying = (mFlags & PLAYING) != 0;
 //
@@ -470,7 +470,7 @@ status_t CedarXPlayer::setNativeWindow_l(const sp<ANativeWindow> &native) {
 //    status_t err = initVideoDecoder();
 //
 //    if (err != OK) {
-//        LOGE("failed to reinstantiate video decoder after surface change.");
+//        ALOGE("failed to reinstantiate video decoder after surface change.");
 //        return err;
 //    }
 //
@@ -490,7 +490,7 @@ status_t CedarXPlayer::setNativeWindow_l(const sp<ANativeWindow> &native) {
 status_t CedarXPlayer::setSurface(const sp<Surface> &surface) {
     Mutex::Autolock autoLock(mLock);
 
-    LOGV("setSurface");
+    ALOGV("setSurface");
     mSurface = surface;
     return setNativeWindow_l(surface);
 }
@@ -500,7 +500,7 @@ status_t CedarXPlayer::setSurfaceTexture(const sp<ISurfaceTexture> &surfaceTextu
 
     mSurface.clear();
 
-    LOGV("setSurfaceTexture");
+    ALOGV("setSurfaceTexture");
 
     status_t err;
     if (surfaceTexture != NULL) {
@@ -556,7 +556,7 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 		*positionUs = mSeekTimeUs; //temp to fix sohuvideo bug
 	}
 
-	//LOGV("getPosition: %lld",*positionUs / 1000);
+	//ALOGV("getPosition: %lld",*positionUs / 1000);
 
 	return OK;
 }
@@ -569,7 +569,7 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 	{
 		Mutex::Autolock autoLock(mLock);
 		mSeekNotificationSent = false;
-		LOGV("seek cmd0 to %lldms", timeUs);
+		ALOGV("seek cmd0 to %lldms", timeUs);
 
 		if (mFlags & CACHE_UNDERRUN) {
 			mFlags &= ~CACHE_UNDERRUN;
@@ -581,7 +581,7 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 		mFlags &= ~(AT_EOS | AUDIO_AT_EOS | VIDEO_AT_EOS);
 
 		if (!(mFlags & PLAYING)) {
-			LOGV( "seeking while paused, sending SEEK_COMPLETE notification"
+			ALOGV( "seeking while paused, sending SEEK_COMPLETE notification"
 						" immediately.");
 
 			notifyListener_l(MEDIA_SEEK_COMPLETE);
@@ -593,16 +593,16 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 	//mPlayer->control(mPlayer, CDX_CMD_SET_AUDIOCHANNEL_MUTE, 3, 0);
 	mPlayer->control(mPlayer, CDX_CMD_SEEK_ASYNC, (int)timeUs, (int)(currPositionUs/1000));
 
-	LOGV("--------- seek cmd1 to %lldms end -----------", timeUs);
+	ALOGV("--------- seek cmd1 to %lldms end -----------", timeUs);
 
 	return OK;
 }
 
 void CedarXPlayer::finishAsyncPrepare_l(int err){
 
-	LOGV("finishAsyncPrepare_l");
+	ALOGV("finishAsyncPrepare_l");
 	if(err == -1){
-		LOGE("CedarXPlayer:prepare error!");
+		ALOGE("CedarXPlayer:prepare error!");
 		abortPrepare(UNKNOWN_ERROR);
 		return;
 	}
@@ -630,14 +630,14 @@ void CedarXPlayer::finishAsyncPrepare_l(int err){
 
 void CedarXPlayer::finishSeek_l(int err){
 	Mutex::Autolock autoLock(mLock);
-	LOGV("finishSeek_l");
+	ALOGV("finishSeek_l");
 
 	if(mAudioPlayer){
 		mAudioPlayer->seekTo(0);
 	}
 	mSeeking = false;
 	if (!mSeekNotificationSent) {
-		LOGV("MEDIA_SEEK_COMPLETE return");
+		ALOGV("MEDIA_SEEK_COMPLETE return");
 		notifyListener_l(MEDIA_SEEK_COMPLETE);
 		mSeekNotificationSent = true;
 	}
@@ -676,7 +676,7 @@ status_t CedarXPlayer::prepareAsync() {
 	//mMaxOutputWidth = 720;
 	//mMaxOutputHeight = 576;
 	if(mMaxOutputWidth && mMaxOutputHeight) {
-		LOGV("Max ouput size %dX%d", mMaxOutputWidth, mMaxOutputHeight);
+		ALOGV("Max ouput size %dX%d", mMaxOutputWidth, mMaxOutputHeight);
 		mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXWIDTH, mMaxOutputWidth, 0);
 		mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, mMaxOutputHeight, 0);
 	}
@@ -690,7 +690,7 @@ status_t CedarXPlayer::prepare() {
 	status_t ret;
 
 	Mutex::Autolock autoLock(mLock);
-	LOGV("prepare");
+	ALOGV("prepare");
 	this->_3d_mode 							= CEDARV_3D_MODE_NONE;
 	this->display_3d_mode 					= CEDARX_DISPLAY_3D_MODE_2D;
 	this->anaglagh_en						= 0;
@@ -731,7 +731,7 @@ void CedarXPlayer::abortPrepare(status_t err) {
 }
 
 //status_t CedarXPlayer::suspend() {
-//	LOGD("suspend start");
+//	ALOGD("suspend start");
 //
 //	if (mFlags & SUSPENDING)
 //		return OK;
@@ -761,13 +761,13 @@ void CedarXPlayer::abortPrepare(status_t err) {
 //		mAudioPlayer = NULL;
 //	}
 //	mPlayerState = PLAYER_STATE_SUSPEND;
-//	LOGD("suspend end");
+//	ALOGD("suspend end");
 //
 //	return OK;
 //}
 //
 //status_t CedarXPlayer::resume() {
-//	LOGD("resume start");
+//	ALOGD("resume start");
 //    Mutex::Autolock autoLock(mLock);
 //    SuspensionState *state = &mSuspensionState;
 //    status_t err;
@@ -783,7 +783,7 @@ void CedarXPlayer::abortPrepare(status_t err) {
 //    if (mIsUri) {
 //    	err = setDataSource(state->mUri, &state->mUriHeaders);
 //    } else {
-//        LOGW("NOT support setdatasouce non-uri currently");
+//        ALOGW("NOT support setdatasouce non-uri currently");
 //    }
 //
 //    mFlags = state->mFlags & (AUTO_LOOPING | LOOPING | AT_EOS);
@@ -797,7 +797,7 @@ void CedarXPlayer::abortPrepare(status_t err) {
 //    //state->mPositionUs = 0;
 //    mPlayerState = PLAYER_STATE_RESUME;
 //
-//    LOGD("resume end");
+//    ALOGD("resume end");
 //
 //	return OK;
 //}
@@ -806,7 +806,7 @@ void CedarXPlayer::abortPrepare(status_t err) {
 status_t CedarXPlayer::setScreen(int screen) {
 	mScreenID = screen;
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
-		LOGV("CedarX setScreen to:%d", screen);
+		ALOGV("CedarX setScreen to:%d", screen);
 		return mVideoRenderer->control(VIDEORENDER_CMD_SETSCREEN, screen);
 	}
 	return UNKNOWN_ERROR;
@@ -857,7 +857,7 @@ status_t CedarXPlayer::set3DMode(int source3dMode, int displayMode)
 
 	if(mVideoRenderer != NULL)
 	{
-		LOGV("set hdmi, src_mode = %d, dst_mode = %d", _3d_info._3d_mode, _3d_info.display_mode);
+		ALOGV("set hdmi, src_mode = %d, dst_mode = %d", _3d_info._3d_mode, _3d_info.display_mode);
 		return mVideoRenderer->control(VIDEORENDER_CMD_SET3DMODE, (int)&_3d_info);
 	}
 
@@ -878,7 +878,7 @@ int CedarXPlayer::getSubCount()
 
 	mPlayer->control(mPlayer, CDX_CMD_GETSUBCOUNT, (unsigned int)&tmp, 0);
 
-	LOGV("getSubCount:%d",tmp);
+	ALOGV("getSubCount:%d",tmp);
 
     return tmp;
 }
@@ -1128,7 +1128,7 @@ status_t CedarXPlayer::setInputDimensionType(int type)
 	//* the 3d mode you set may be invalid, get the valid 3d mode from mPlayer.
 	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&this->_3d_mode, 0);
 
-	LOGV("set 3d source mode to %d, current_3d_mode = %d", type, this->_3d_mode);
+	ALOGV("set 3d source mode to %d, current_3d_mode = %d", type, this->_3d_mode);
 
 	return 0;
 }
@@ -1146,10 +1146,10 @@ int CedarXPlayer::getInputDimensionType()
 	if((unsigned int)tmp != this->_3d_mode)
 	{
 		this->_3d_mode = tmp;
-		LOGV("set _3d_mode to be %d when getting source mode", this->_3d_mode);
+		ALOGV("set _3d_mode to be %d when getting source mode", this->_3d_mode);
 	}
 
-	LOGV("this->_3d_mode = %d", this->_3d_mode);
+	ALOGV("this->_3d_mode = %d", this->_3d_mode);
 
 	return (int)this->_3d_mode;
 }
@@ -1162,7 +1162,7 @@ status_t CedarXPlayer::setOutputDimensionType(int type)
 
 	ret = mPlayer->control(mPlayer, CDX_CMD_SET_DISPLAY_MODE, type, 0);
 
-	LOGV("set output display mode to be %d, current display mode = %d", type, this->display_3d_mode);
+	ALOGV("set output display mode to be %d, current display mode = %d", type, this->display_3d_mode);
 	if(this->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH && type != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 	{
 		this->display_3d_mode = type;
@@ -1203,7 +1203,7 @@ int CedarXPlayer::getOutputDimensionType()
 	if(mPlayer == NULL)
 		return -1;
 
-	LOGV("current display 3d mode = %d", this->display_3d_mode);
+	ALOGV("current display 3d mode = %d", this->display_3d_mode);
 	return (int)this->display_3d_mode;
 }
 
@@ -1332,12 +1332,12 @@ uint32_t CedarXPlayer::flags() const {
 int CedarXPlayer::nativeSuspend()
 {
 	if (mFlags & PLAYING) {
-		LOGV("nativeSuspend may fail, I'am still playing");
+		ALOGV("nativeSuspend may fail, I'am still playing");
 		return -1;
 	}
 
 	if(mPlayer != NULL){
-		LOGV("I'm force to quit!");
+		ALOGV("I'm force to quit!");
 		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
 	}
 
@@ -1444,7 +1444,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 
 			if(this->wait_anaglagh_display_change)
 			{
-				LOGV("+++++++++++++ display 3d mode == %d", this->display_3d_mode);
+				ALOGV("+++++++++++++ display 3d mode == %d", this->display_3d_mode);
 				if(this->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 				{
 					//* switch on anaglagh display.
@@ -1509,7 +1509,7 @@ int CedarXPlayer::StagefrightVideoRenderGetFrameID()
 	if(mVideoRenderer != NULL){
 		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
 			ret = mVideoRenderer->control(VIDEORENDER_CMD_GETCURFRAMEPARA, 0);
-			//LOGV("get disp frame id:%d",ret);
+			//ALOGV("get disp frame id:%d",ret);
 		}
 		else {
 			ret = mLocalRenderFrameIDCurr;
@@ -1528,7 +1528,7 @@ int CedarXPlayer::StagefrightAudioRenderInit(int samplerate, int channels, int f
 		if (mAudioSink != NULL) {
 			mAudioPlayer = new CedarXAudioPlayer(mAudioSink, this);
 			//mAudioPlayer->setSource(mAudioSource);
-			LOGV("set audio format: (%d : %d)", samplerate, channels);
+			ALOGV("set audio format: (%d : %d)", samplerate, channels);
 			mAudioPlayer->setFormat(samplerate, channels);
 
 			status_t err = mAudioPlayer->start(true /* sourceAlreadyStarted */);
@@ -1587,7 +1587,7 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 	int ret = 0;
 	int *para = (int*)info;
 
-	//LOGV("----------CedarXPlayerCallback event:%d info:%p\n", event, info);
+	//ALOGV("----------CedarXPlayerCallback event:%d info:%p\n", event, info);
 
 	switch (event) {
 	case CDX_EVENT_PLAYBACK_COMPLETE:
@@ -1637,12 +1637,12 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 		break;
 
 	case CDX_MEDIA_INFO_BUFFERING_START:
-		LOGV("MEDIA_INFO_BUFFERING_START");
+		ALOGV("MEDIA_INFO_BUFFERING_START");
 		notifyListener_l(MEDIA_INFO, MEDIA_INFO_BUFFERING_START);
 		break;
 
 	case CDX_MEDIA_INFO_BUFFERING_END:
-		LOGV("MEDIA_INFO_BUFFERING_END ...");
+		ALOGV("MEDIA_INFO_BUFFERING_END ...");
 		notifyListener_l(MEDIA_BUFFERING_UPDATE, 0);//clear buffer scroll
 		usleep(1000);
 		notifyListener_l(MEDIA_INFO, MEDIA_INFO_BUFFERING_END);
@@ -1658,7 +1658,7 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 		getPosition(&positionUs);
 		if(mDurationUs > 0){
 			progress = (int)((positionUs + (mDurationUs - positionUs) * progress / 100) * 100 / mDurationUs);
-			LOGV("MEDIA_INFO_BUFFERING_UPDATE: %d %lld", (int)progress, positionUs);
+			ALOGV("MEDIA_INFO_BUFFERING_UPDATE: %d %lld", (int)progress, positionUs);
 			notifyListener_l(MEDIA_BUFFERING_UPDATE, (int)progress);
 		}
 		break;
@@ -1677,7 +1677,7 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 		break;
 
 	case CDX_EVENT_NATIVE_SUSPEND:
-		LOGV("receive CDX_EVENT_NATIVE_SUSPEND");
+		ALOGV("receive CDX_EVENT_NATIVE_SUSPEND");
 		ret = nativeSuspend();
 		break;
 
@@ -1685,7 +1685,7 @@ int CedarXPlayer::CedarXPlayerCallback(int event, void *info)
 //		{
 //			cdx_3d_mode_e tmp_3d_mode;
 //			tmp_3d_mode = *((cdx_3d_mode_e *)info);
-//			LOGV("source 3d mode get from parser is %d", tmp_3d_mode);
+//			ALOGV("source 3d mode get from parser is %d", tmp_3d_mode);
 //			notifyListener_l(MEDIA_INFO_SRC_3D_MODE, tmp_3d_mode);
 //		}
 //		break;

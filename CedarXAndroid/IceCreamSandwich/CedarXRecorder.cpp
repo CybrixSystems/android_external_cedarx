@@ -15,7 +15,7 @@
 #include <type_camera.h>
 #include <CDX_PlayerAPI.h>
 
-#define F_LOG 	LOGV("%s, line: %d", __FUNCTION__, __LINE__);
+#define F_ALOG 	ALOGV("%s, line: %d", __FUNCTION__, __LINE__);
 
 extern "C" int CedarXRecorderCallbackWrapper(void *cookie, int event, void *info);
 
@@ -46,28 +46,28 @@ private:
 CDXCameraListener::CDXCameraListener(CedarXRecorder * recorder)
     : mRecorder(recorder) 
 {
-	LOGV("CDXCameraListener Construct\n");
+	ALOGV("CDXCameraListener Construct\n");
 }
 
 CDXCameraListener::~CDXCameraListener() {
-	LOGV("CDXCameraListener Destruct\n");
+	ALOGV("CDXCameraListener Destruct\n");
 }
 
 void CDXCameraListener::notify(int32_t msgType, int32_t ext1, int32_t ext2) 
 {
-    LOGV("notify(%d, %d, %d)", msgType, ext1, ext2);
+    ALOGV("notify(%d, %d, %d)", msgType, ext1, ext2);
 }
 
 void CDXCameraListener::postData(int32_t msgType, const sp<IMemory> &dataPtr, camera_frame_metadata_t *metadata) 
 {
-    LOGV("postData(%d, ptr:%p, size:%d)",
+    ALOGV("postData(%d, ptr:%p, size:%d)",
          msgType, dataPtr->pointer(), dataPtr->size());
 }
 
 void CDXCameraListener::postDataTimestamp(
         nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr) 
 {
-	// LOGD("CDXCameraListener::postDataTimestamp\n");
+	// ALOGD("CDXCameraListener::postDataTimestamp\n");
 	mRecorder->dataCallbackTimestamp(timestamp, msgType, dataPtr);
 }
 
@@ -96,14 +96,14 @@ CedarXRecorder::CedarXRecorder()
     , mLastTimeLapseFrameTimestampUs(0)
 {
 
-    LOGV("Constructor");
+    ALOGV("Constructor");
 
 	reset();
 
 	mFrameHeap = new MemoryHeapBase(sizeof(int));
 	if (mFrameHeap->getHeapID() < 0)
 	{
-		LOGE("ERR(%s): Record heap creation fail", __func__);
+		ALOGE("ERR(%s): Record heap creation fail", __func__);
         mFrameHeap.clear();
 	}
 	mFrameBuffer = new MemoryBase(mFrameHeap, 0, sizeof(int));
@@ -111,7 +111,7 @@ CedarXRecorder::CedarXRecorder()
 
 CedarXRecorder::~CedarXRecorder() 
 {
-    LOGV("CedarXRecorder Destructor");
+    ALOGV("CedarXRecorder Destructor");
 
 	if (mFrameHeap != NULL)
 	{
@@ -119,12 +119,12 @@ CedarXRecorder::~CedarXRecorder()
 		mFrameHeap = NULL;
 	}
 
-	LOGV("CedarXRecorder Destructor OK");
+	ALOGV("CedarXRecorder Destructor OK");
 }
 
 status_t CedarXRecorder::setAudioSource(audio_source_t as) 
 {
-    LOGV("setAudioSource: %d", as);
+    ALOGV("setAudioSource: %d", as);
 
 	mAudioSource = as;
 
@@ -133,7 +133,7 @@ status_t CedarXRecorder::setAudioSource(audio_source_t as)
 
 status_t CedarXRecorder::setVideoSource(video_source vs) 
 {
-    LOGV("setVideoSource: %d", vs);
+    ALOGV("setVideoSource: %d", vs);
 
 	mVideoSource = vs;
 	
@@ -142,7 +142,7 @@ status_t CedarXRecorder::setVideoSource(video_source vs)
 
 status_t CedarXRecorder::setOutputFormat(output_format of) 
 {
-    LOGV("setOutputFormat: %d", of);
+    ALOGV("setOutputFormat: %d", of);
 
 	mOutputFormat = of;
 	
@@ -151,7 +151,7 @@ status_t CedarXRecorder::setOutputFormat(output_format of)
 
 status_t CedarXRecorder::setAudioEncoder(audio_encoder ae) 
 {
-    LOGV("setAudioEncoder: %d", ae);
+    ALOGV("setAudioEncoder: %d", ae);
    
 	mRecModeFlag |= RECORDER_MODE_AUDIO;
 	
@@ -160,7 +160,7 @@ status_t CedarXRecorder::setAudioEncoder(audio_encoder ae)
 
 status_t CedarXRecorder::setVideoEncoder(video_encoder ve) 
 {
-    LOGV("setVideoEncoder: %d", ve);
+    ALOGV("setVideoEncoder: %d", ve);
     
 	mRecModeFlag |= RECORDER_MODE_VIDEO;
 	
@@ -169,7 +169,7 @@ status_t CedarXRecorder::setVideoEncoder(video_encoder ve)
 
 status_t CedarXRecorder::setVideoSize(int width, int height) 
 {
-    LOGV("setVideoSize: %dx%d", width, height);
+    ALOGV("setVideoSize: %dx%d", width, height);
    
     // Additional check on the dimension will be performed later
     mVideoWidth = width;
@@ -180,7 +180,7 @@ status_t CedarXRecorder::setVideoSize(int width, int height)
 
 status_t CedarXRecorder::setVideoFrameRate(int frames_per_second) 
 {
-    LOGV("setVideoFrameRate: %d", frames_per_second);
+    ALOGV("setVideoFrameRate: %d", frames_per_second);
     
     // Additional check on the frame rate will be performed later
     mFrameRate = frames_per_second;
@@ -190,20 +190,20 @@ status_t CedarXRecorder::setVideoFrameRate(int frames_per_second)
 
 status_t CedarXRecorder::setCamera(const sp<ICamera>& camera, const sp<ICameraRecordingProxy>& proxy)
 {
-    LOGV("setCamera");
+    ALOGV("setCamera");
 
 	int err = UNKNOWN_ERROR;
 	
     if (camera == 0) 
 	{
-        LOGE("camera is NULL");
+        ALOGE("camera is NULL");
         return BAD_VALUE;
     }
 
     int64_t token = IPCThreadState::self()->clearCallingIdentity();
 	
 	if ((err = isCameraAvailable(camera, proxy, mCameraId)) != OK) {
-        LOGE("Camera connection could not be established.");
+        ALOGE("Camera connection could not be established.");
         return err;
     }
 	
@@ -246,7 +246,7 @@ status_t CedarXRecorder::isCameraAvailable(
 	// store metadata in video buffers
 	if (OK != mCamera->storeMetaDataInBuffers(true)) 
 	{
-		LOGW("storeMetaDataInBuffers failed");
+		ALOGW("storeMetaDataInBuffers failed");
 	}
 
 
@@ -258,7 +258,7 @@ status_t CedarXRecorder::isCameraAvailable(
 
 status_t CedarXRecorder::setPreviewSurface(const sp<Surface>& surface)
 {
-    LOGV("setPreviewSurface: %p", surface.get());
+    ALOGV("setPreviewSurface: %p", surface.get());
     mPreviewSurface = surface;
 	
 //	CHECK_EQ(OK, mCamera->setPreviewDisplay(mPreviewSurface));
@@ -268,7 +268,7 @@ status_t CedarXRecorder::setPreviewSurface(const sp<Surface>& surface)
 
 status_t CedarXRecorder::setOutputFile(int fd) 
 {
-    LOGV("setOutputFile: %d", fd);
+    ALOGV("setOutputFile: %d", fd);
 
     mOutputFd = fd;
 
@@ -277,7 +277,7 @@ status_t CedarXRecorder::setOutputFile(int fd)
 
 status_t CedarXRecorder::setParamVideoCameraId(int32_t cameraId) 
 {
-    LOGV("setParamVideoCameraId: %d", cameraId);
+    ALOGV("setParamVideoCameraId: %d", cameraId);
 	
     mCameraId = cameraId;
 	
@@ -286,7 +286,7 @@ status_t CedarXRecorder::setParamVideoCameraId(int32_t cameraId)
 
 status_t CedarXRecorder::setParamAudioEncodingBitRate(int32_t bitRate) 
 {
-    LOGV("setParamAudioEncodingBitRate: %d", bitRate);
+    ALOGV("setParamAudioEncodingBitRate: %d", bitRate);
 	
     mAudioBitRate = bitRate;
 	
@@ -295,7 +295,7 @@ status_t CedarXRecorder::setParamAudioEncodingBitRate(int32_t bitRate)
 
 status_t CedarXRecorder::setParamAudioSamplingRate(int32_t sampleRate) 
 {
-	LOGV("setParamAudioSamplingRate: %d", sampleRate);
+	ALOGV("setParamAudioSamplingRate: %d", sampleRate);
 
 	// Additional check on the sample rate will be performed later.
 	mSampleRate = sampleRate;
@@ -304,7 +304,7 @@ status_t CedarXRecorder::setParamAudioSamplingRate(int32_t sampleRate)
 
 status_t CedarXRecorder::setParamAudioNumberOfChannels(int32_t channels) 
 {
-    LOGV("setParamAudioNumberOfChannels: %d", channels);
+    ALOGV("setParamAudioNumberOfChannels: %d", channels);
 
     // Additional check on the number of channels will be performed later.
     mAudioChannels = channels;
@@ -313,7 +313,7 @@ status_t CedarXRecorder::setParamAudioNumberOfChannels(int32_t channels)
 
 status_t CedarXRecorder::setParamMaxFileDurationUs(int64_t timeUs) 
 {
-    LOGV("setParamMaxFileDurationUs: %lld us", timeUs);
+    ALOGV("setParamMaxFileDurationUs: %lld us", timeUs);
 
     mMaxFileDurationUs = timeUs;
     return OK;
@@ -321,14 +321,14 @@ status_t CedarXRecorder::setParamMaxFileDurationUs(int64_t timeUs)
 
 status_t CedarXRecorder::setParamMaxFileSizeBytes(int64_t bytes) 
 {
-    LOGV("setParamMaxFileSizeBytes: %lld bytes", bytes);
+    ALOGV("setParamMaxFileSizeBytes: %lld bytes", bytes);
 	
 	mMaxFileSizeBytes = bytes;
 
 	if (mMaxFileSizeBytes > (int64_t)MAX_FILE_SIZE)
 	{
 		mMaxFileSizeBytes = (int64_t)MAX_FILE_SIZE;
-    	LOGD("force maxFileSizeBytes to %lld bytes", mMaxFileSizeBytes);
+    	ALOGD("force maxFileSizeBytes to %lld bytes", mMaxFileSizeBytes);
 	}
 	
     return OK;
@@ -336,7 +336,7 @@ status_t CedarXRecorder::setParamMaxFileSizeBytes(int64_t bytes)
 
 status_t CedarXRecorder::setParamVideoEncodingBitRate(int32_t bitRate) 
 {
-    LOGV("setParamVideoEncodingBitRate: %d", bitRate);
+    ALOGV("setParamVideoEncodingBitRate: %d", bitRate);
 	
     mVideoBitRate = bitRate;
     return OK;
@@ -345,7 +345,7 @@ status_t CedarXRecorder::setParamVideoEncodingBitRate(int32_t bitRate)
 // Always rotate clockwise, and only support 0, 90, 180 and 270 for now.
 status_t CedarXRecorder::setParamVideoRotation(int32_t degrees) 
 {
-    LOGV("setParamVideoRotation: %d", degrees);
+    ALOGV("setParamVideoRotation: %d", degrees);
 	
     mRotationDegrees = degrees % 360;
 
@@ -353,14 +353,14 @@ status_t CedarXRecorder::setParamVideoRotation(int32_t degrees)
 }
 
 status_t CedarXRecorder::setParamTimeLapseEnable(int32_t timeLapseEnable) {
-    LOGV("setParamTimeLapseEnable: %d", timeLapseEnable);
+    ALOGV("setParamTimeLapseEnable: %d", timeLapseEnable);
 
 	mCaptureTimeLapse = timeLapseEnable;
     return OK;
 }
 
 status_t CedarXRecorder::setParamTimeBetweenTimeLapseFrameCapture(int64_t timeUs) {
-    LOGV("setParamTimeBetweenTimeLapseFrameCapture: %lld us", timeUs);
+    ALOGV("setParamTimeBetweenTimeLapseFrameCapture: %lld us", timeUs);
 
     mTimeBetweenTimeLapseFrameCaptureUs = timeUs;
     return OK;
@@ -376,11 +376,11 @@ status_t CedarXRecorder::setListener(const sp<IMediaRecorderClient> &listener)
 static void AudioRecordCallbackFunction(int event, void *user, void *info) {
     switch (event) {
         case AudioRecord::EVENT_MORE_DATA: {
-            LOGW("AudioRecord reported EVENT_MORE_DATA!");
+            ALOGW("AudioRecord reported EVENT_MORE_DATA!");
             break;
         }
         case AudioRecord::EVENT_OVERRUN: {
-            LOGW("AudioRecord reported EVENT_OVERRUN!");
+            ALOGW("AudioRecord reported EVENT_OVERRUN!");
             break;
         }
         default:
@@ -405,28 +405,28 @@ status_t CedarXRecorder::CreateAudioRecorder()
 
 	if (mRecord == NULL)
 	{
-		LOGE("create AudioRecord failed");
+		ALOGE("create AudioRecord failed");
 		return UNKNOWN_ERROR;
 	}
 
 	status_t err = mRecord->initCheck();
 	if (err != OK)
 	{
-		LOGE("AudioRecord is not initialized");
+		ALOGE("AudioRecord is not initialized");
 		return UNKNOWN_ERROR;
 	}
 
-	LOGV("~~~~~~~~~~~~~~framesize: %d ", mRecord->frameSize());
-	LOGV("~~~~~~~~~~~~~~frameCount: %d ", mRecord->frameCount());		
-	LOGV("~~~~~~~~~~~~~~channelCount: %d ", mRecord->channelCount());
-	LOGV("~~~~~~~~~~~~~~getSampleRate: %d ", mRecord->getSampleRate());
+	ALOGV("~~~~~~~~~~~~~~framesize: %d ", mRecord->frameSize());
+	ALOGV("~~~~~~~~~~~~~~frameCount: %d ", mRecord->frameCount());		
+	ALOGV("~~~~~~~~~~~~~~channelCount: %d ", mRecord->channelCount());
+	ALOGV("~~~~~~~~~~~~~~getSampleRate: %d ", mRecord->getSampleRate());
 
 	return OK;
 }
 
 status_t CedarXRecorder::prepare() 
 {
-	LOGV("prepare");
+	ALOGV("prepare");
 
 	int ret = OK;
 
@@ -436,7 +436,7 @@ status_t CedarXRecorder::prepare()
 		ret = CreateAudioRecorder();
 		if (ret != OK)
 		{
-			LOGE("CreateAudioRecorder failed");
+			ALOGE("CreateAudioRecorder failed");
 			return ret;
 		}
 	}
@@ -462,7 +462,7 @@ status_t CedarXRecorder::prepare()
 	ret = CDXRecorder_Control(CDX_CMD_SET_SAVE_FILE, (unsigned int)mOutputFd, 0);
 	if(ret != OK)
 	{
-		LOGE("CedarXRecorder::prepare, CDX_CMD_SET_SAVE_FILE failed\n");
+		ALOGE("CedarXRecorder::prepare, CDX_CMD_SET_SAVE_FILE failed\n");
 		return ret;
 	}
 
@@ -472,7 +472,7 @@ status_t CedarXRecorder::prepare()
     params.setPreviewSize(mVideoWidth, mVideoHeight);
     String8 s = params.flatten();
     if (OK != mCamera->setParameters(s)) {
-        LOGE("Could not change settings."
+        ALOGE("Could not change settings."
              " Someone else is using camera %d?", mCameraId);
 		IPCThreadState::self()->restoreCallingIdentity(token);
         return -EBUSY;
@@ -483,14 +483,14 @@ status_t CedarXRecorder::prepare()
     int srcWidth = 0, srcHeight = 0;
     newCameraParams.getPreviewSize(&srcWidth, &srcHeight);
     if (srcWidth  == 0 || srcHeight == 0) {
-        LOGE("Failed to set the video frame size to %dx%d",
+        ALOGE("Failed to set the video frame size to %dx%d",
                 mVideoWidth, mVideoHeight);
 		IPCThreadState::self()->restoreCallingIdentity(token);
         return UNKNOWN_ERROR;
     }
 	IPCThreadState::self()->restoreCallingIdentity(token);
 
-	LOGV("src: %dx%d, video: %dx%d", srcWidth, srcHeight, mVideoWidth, mVideoHeight);
+	ALOGV("src: %dx%d, video: %dx%d", srcWidth, srcHeight, mVideoWidth, mVideoHeight);
 	
 	// set video size and FrameRate to CDX_Recorder
 	VIDEOINFO_t vInfo;
@@ -519,14 +519,14 @@ status_t CedarXRecorder::prepare()
 		|| mFrameRate == 0
 		|| mVideoBitRate == 0)
 	{
-		LOGE("error video para");
+		ALOGE("error video para");
 		return -1;
 	}
 	
 	ret = CDXRecorder_Control(CDX_CMD_SET_VIDEO_INFO, (unsigned int)&vInfo, 0);
 	if(ret != OK)
 	{
-		LOGE("CedarXRecorder::prepare, CDX_CMD_SET_VIDEO_INFO failed\n");
+		ALOGE("CedarXRecorder::prepare, CDX_CMD_SET_VIDEO_INFO failed\n");
 		return ret;
 	}
 
@@ -543,14 +543,14 @@ status_t CedarXRecorder::prepare()
 			|| mAudioChannels == 0
 			|| mSampleRate == 0)
 		{
-			LOGE("error audio para");
+			ALOGE("error audio para");
 			return -1;
 		}
 
 		ret = CDXRecorder_Control(CDX_CMD_SET_AUDIO_INFO, (unsigned int)&aInfo, 0);
 		if(ret != OK)
 		{
-			LOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
+			ALOGE("CedarXRecorder::prepare, CDX_CMD_SET_AUDIO_INFO failed\n");
 			return ret;
 		}	
 	}
@@ -558,7 +558,7 @@ status_t CedarXRecorder::prepare()
 	// time lapse mode
 	if (mCaptureTimeLapse)
 	{
-		LOGD("time lapse mode*****************************");
+		ALOGD("time lapse mode*****************************");
 		mTimeBetweenTimeLapseVideoFramesUs = 1E6/mFrameRate;
 		CDXRecorder_Control(CDX_CMD_SET_TIME_LAPSE, 0, 0);
 	}
@@ -568,7 +568,7 @@ status_t CedarXRecorder::prepare()
 
 status_t CedarXRecorder::start() 
 {
-	LOGV("start");
+	ALOGV("start");
 	Mutex::Autolock autoLock(mStateLock);
 	
 	CHECK(mOutputFd >= 0);
@@ -580,7 +580,7 @@ status_t CedarXRecorder::start()
 		mRecord->start();
 	}
 
-	LOGV("startCameraRecording");
+	ALOGV("startCameraRecording");
     // Reset the identity to the current thread because media server owns the
     // camera and recording is started by the applications. The applications
     // will connect to the camera in ICameraRecordingProxy::startRecording.
@@ -603,15 +603,15 @@ status_t CedarXRecorder::start()
 	CDXRecorder_Control(CDX_CMD_START, 0, 0);
 
 	mLatencyStartUs = systemTime() / 1000;
-	LOGV("mLatencyStartUs: %lldus", mLatencyStartUs);
-	LOGV("VIDEO_LATENCY_TIME: %dus, AUDIO_LATENCY_TIME: %dus", VIDEO_LATENCY_TIME, AUDIO_LATENCY_TIME);
-	LOGV("CedarXRecorder::start OK\n");
+	ALOGV("mLatencyStartUs: %lldus", mLatencyStartUs);
+	ALOGV("VIDEO_LATENCY_TIME: %dus, AUDIO_LATENCY_TIME: %dus", VIDEO_LATENCY_TIME, AUDIO_LATENCY_TIME);
+	ALOGV("CedarXRecorder::start OK\n");
     return OK;
 }
 
 status_t CedarXRecorder::pause() 
 {
-    LOGV("pause");
+    ALOGV("pause");
 	Mutex::Autolock autoLock(mStateLock);
 
 	mStarted = false;
@@ -630,7 +630,7 @@ status_t CedarXRecorder::pause()
 
 status_t CedarXRecorder::stop() 
 {
-    LOGV("stop");
+    ALOGV("stop");
 	
     status_t err = OK;
 	
@@ -668,19 +668,19 @@ status_t CedarXRecorder::stop()
 		mRecord->stop();
 	}
 
-	LOGV("stopped\n");
+	ALOGV("stopped\n");
 
 	return err;
 }
 
 void CedarXRecorder::releaseCamera() {
-    LOGV("releaseCamera");
+    ALOGV("releaseCamera");
     if (mCamera != 0) 
 	{
         int64_t token = IPCThreadState::self()->clearCallingIdentity();
         if ((mCameraFlags & FLAGS_HOT_CAMERA) == 0) 
 		{
-            LOGV("Camera was cold when we started, stopping preview");
+            ALOGV("Camera was cold when we started, stopping preview");
             mCamera->stopPreview();
             mCamera->disconnect();
         }
@@ -700,7 +700,7 @@ void CedarXRecorder::releaseCamera() {
 
 status_t CedarXRecorder::reset() 
 {
-    LOGV("reset");
+    ALOGV("reset");
 
     // No audio or video source by default
     mAudioSource = AUDIO_SOURCE_CNT;
@@ -737,7 +737,7 @@ status_t CedarXRecorder::reset()
 
 status_t CedarXRecorder::getMaxAmplitude(int *max) 
 {
-    LOGV("getMaxAmplitude");
+    ALOGV("getMaxAmplitude");
 
 	// to do
 	*max = 100;
@@ -767,7 +767,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	
 	if (data == NULL)
 	{
-		LOGE("error IMemory data\n");
+		ALOGE("error IMemory data\n");
 		return;
 	}
 	
@@ -789,7 +789,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	// time lapse mode
 	if (mCaptureTimeLapse)
 	{
-		// LOGV("readTimeUs : %lld, lapse: %lld", readTimeUs, mLastTimeLapseFrameRealTimestampUs + mTimeBetweenTimeLapseFrameCaptureUs);
+		// ALOGV("readTimeUs : %lld, lapse: %lld", readTimeUs, mLastTimeLapseFrameRealTimestampUs + mTimeBetweenTimeLapseFrameCaptureUs);
 		if (readTimeUs < mLastTimeLapseFrameRealTimestampUs + mTimeBetweenTimeLapseFrameCaptureUs)
 		{
 			CedarXReleaseFrame(buf.index);
@@ -801,7 +801,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 		mLastTimeLapseFrameTimestampUs = buf.timeStamp;
 	}
 	
-	// LOGV("CedarXRecorder::dataCallbackTimestamp: addrPhyY %x, timestamp %lld us", buf.addrPhyY, timestampUs);
+	// ALOGV("CedarXRecorder::dataCallbackTimestamp: addrPhyY %x, timestamp %lld us", buf.addrPhyY, timestampUs);
 
 	ret = CDXRecorder_Control(CDX_CMD_SEND_BUF, (unsigned int)&buf, 0); 
 	if (ret != 0)
@@ -810,7 +810,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	}
 
 	CDXRecorder_Control(CDX_CMD_GET_DURATION, (unsigned int)&duration, 0); 
-	// LOGV("duration : %d", duration);
+	// ALOGV("duration : %d", duration);
 	
 	if (mMaxFileDurationUs != 0 
 		&& duration >= mMaxFileDurationUs / 1000)
@@ -819,7 +819,7 @@ void CedarXRecorder::dataCallbackTimestamp(int64_t timestampUs,
 	}
 
 	CDXRecorder_Control(CDX_CMD_GET_FILE_SIZE, (int64_t)&fileSizeBytes, 0); 
-	// LOGV("fileSizeBytes : %lld", fileSizeBytes);
+	// ALOGV("fileSizeBytes : %lld", fileSizeBytes);
 	
 	if (mMaxFileSizeBytes > 0 
 		&& fileSizeBytes >= mMaxFileSizeBytes)
@@ -841,14 +841,14 @@ status_t CedarXRecorder::CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *t
 {	
     int64_t readTimeUs = systemTime() / 1000;
 
-	// LOGV("CedarXRecorder::CedarXReadAudioBuffer, readTimeUs: %lld", readTimeUs);
+	// ALOGV("CedarXRecorder::CedarXReadAudioBuffer, readTimeUs: %lld", readTimeUs);
 
 	*timeStamp = readTimeUs;
 	
 	ssize_t n = mRecord->read(pbuf, kMaxBufferSize);
 	if (n < 0)
 	{
-		LOGE("mRecord read audio buffer failed");
+		ALOGE("mRecord read audio buffer failed");
 		return UNKNOWN_ERROR;
 	}
 
@@ -859,7 +859,7 @@ status_t CedarXRecorder::CedarXReadAudioBuffer(void *pbuf, int *size, int64_t *t
 	
 	*size = n;
 
-	// LOGV("timestamp: %lld, len: %d", readTimeUs, n);
+	// ALOGV("timestamp: %lld, len: %d", readTimeUs, n);
 
 	return OK;
 }
@@ -892,7 +892,7 @@ int CedarXRecorder::CedarXRecorderCallback(int event, void *info)
 	int ret = 0;
 	int *para = (int*)info;
 
-	//LOGV("----------CedarXRecorderCallback event:%d info:%p\n", event, info);
+	//ALOGV("----------CedarXRecorderCallback event:%d info:%p\n", event, info);
 
 	switch (event) {
 	case CDX_EVENT_READ_AUDIO_BUFFER:
