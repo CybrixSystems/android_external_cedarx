@@ -1,7 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-include frameworks/base/media/libstagefright/codecs/common/Config.mk
+include frameworks/av/media/libstagefright/codecs/common/Config.mk
 include external/cedarx/Config.mk
 
 CEDARA_VERSION_TAG = _ICS_
@@ -15,8 +15,8 @@ LOCAL_C_INCLUDES:= \
         $(JNI_H_INCLUDE) \
         $(LOCAL_PATH)/include \
         ${CEDARX_TOP}/libcodecs/include \
-        $(TOP)/frameworks/base/include/media/stagefright \
-        $(TOP)/frameworks/base/include/media/stagefright/openmax
+        $(TOP)/frameworks/av/include/media/stagefright \
+        $(TOP)/frameworks/av/include/media/stagefright/openmax
 
 LOCAL_SHARED_LIBRARIES := \
         libbinder         \

@@ -1,7 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-include frameworks/base/media/libstagefright/codecs/common/Config.mk
+include frameworks/av/media/libstagefright/codecs/common/Config.mk
 include external/cedarx/Config.mk
 
 LOCAL_SRC_FILES:= \
@@ -16,16 +16,16 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES:= \
         $(JNI_H_INCLUDE) \
-        $(TOP)/frameworks/base/include/media/stagefright \
-        $(TOP)/frameworks/base/include/media/stagefright/openmax \
+        $(TOP)/frameworks/av/include/media/stagefright \
+        $(TOP)/frameworks/av/include/media/stagefright/openmax \
         $(CEDARX_TOP)/include \
         $(CEDARX_TOP)/libutil \
         $(CEDARX_TOP)/include/include_cedarv \
         $(CEDARX_TOP)/include/include_audio \
         ${CEDARX_TOP}/include/include_camera \
-        $(TOP)/frameworks/base/media/libstagefright/include \
-        $(TOP)/frameworks/base \
-        $(TOP)/frameworks/base/include \
+        $(TOP)/frameworks/av/media/libstagefright/include \
+        $(TOP)/frameworks/av \
+        $(TOP)/frameworks/av/include \
         $(TOP)/external/openssl/include
 
 LOCAL_SHARED_LIBRARIES := \
@@ -35,7 +35,6 @@ LOCAL_SHARED_LIBRARIES := \
         libcutils \
         libui \
         libgui \
-        libsurfaceflinger_client \
         libcamera_client \
         libstagefright_foundation \
         libicuuc \
